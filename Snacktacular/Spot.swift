@@ -28,6 +28,10 @@ class Spot: NSObject, MKAnnotation {
         return coordinate.latitude
     }
     
+    var location: CLLocation {
+        return CLLocation(latitude: latitude, longitude: longitude)
+    }
+    
     var dictionary: [String: Any] {
         return ["name": name, "address": address, "longitude": longitude, "latitude": latitude, "averageRating": averageRating, "numberOfReviews": numberOfReviews, "postingUserID": postingUserID]
     
