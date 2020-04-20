@@ -20,6 +20,9 @@ class SpotDetailViewController: UIViewController {
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var mapView: MKMapView!
     
+    @IBOutlet weak var saveBarButton: UIBarButtonItem!
+    @IBOutlet weak var cancelBarButton: UIBarButtonItem!
+    
     var spot: Spot!
     let regionDistance: CLLocationDistance = 750 // 750m (about .5 mile)
     var locationManager: CLLocationManager!
@@ -27,6 +30,11 @@ class SpotDetailViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        // hide keyboard if we tap outside
+        let tap = UITapGestureRecognizer(target: self.view, action: #selector(UIView.endEditing(_:)))
+        tap.cancelsTouchesInView = false
+        self.view.addGestureRecognizer(tap)
         
         // mapView.delegate = self
         
@@ -36,6 +44,25 @@ class SpotDetailViewController: UIViewController {
             // we won't have to change this if we make changes to our spot class
             spot = Spot()
             getLocation()
+            
+            // editable fields should have border
+            nameField.addBorder(width: 0.5, radius: 5.0, color: .black)
+            addressField.addBorder(width: 0.5, radius: 5.0, color: .black)
+            
+        } else {
+            // disable text editing fields
+            nameField.isEnabled = false
+            addressField.isEnabled = false
+            // disabled fields should have white background
+            nameField.backgroundColor = UIColor.white
+            addressField.backgroundColor = UIColor.white
+            
+            // Save and Cancel should be hidden
+            saveBarButton.title = ""
+            cancelBarButton.title = ""
+            
+            // hide toolbar so lookup place isn't available
+            navigationController?.setToolbarHidden(true, animated: true)
         }
         
         let region = MKCoordinateRegion(center: spot.coordinate, latitudinalMeters: regionDistance, longitudinalMeters: regionDistance)
@@ -43,6 +70,20 @@ class SpotDetailViewController: UIViewController {
         
         updateUserInterface()
     }
+    
+    
+    @IBAction func textFieldEditingChanged(_ sender: UITextField) {
+        saveBarButton.isEnabled = !(nameField.text == "")
+        
+    }
+    
+    @IBAction func textFieldReturnPressed(_ sender: UITextField) {
+        sender.resignFirstResponder()
+        spot.name = nameField.text!
+        spot.address = addressField.text!
+        updateUserInterface()
+    }
+    
     
     func showAlert(title: String, message: String) {
         let alertController = UIAlertController(title: title, message: message, preferredStyle: .alert)
@@ -71,6 +112,9 @@ class SpotDetailViewController: UIViewController {
             navigationController?.popViewController(animated: true)
         }
     }
+    
+    
+    
 
     @IBAction func photoButtonPressed(_ sender: UIButton) {
     }
