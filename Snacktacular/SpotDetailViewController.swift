@@ -19,12 +19,12 @@ class SpotDetailViewController: UIViewController {
     @IBOutlet weak var collectionView: UICollectionView!
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var mapView: MKMapView!
-    
     @IBOutlet weak var saveBarButton: UIBarButtonItem!
     @IBOutlet weak var cancelBarButton: UIBarButtonItem!
     
     var spot: Spot!
     var reviews: Reviews!
+    var photos: Photos!
     let regionDistance: CLLocationDistance = 750 // 750m (about .5 mile)
     var locationManager: CLLocationManager!
     var currentLocation: CLLocation!
@@ -40,6 +40,8 @@ class SpotDetailViewController: UIViewController {
         // mapView.delegate = self
         tableView.delegate = self
         tableView.dataSource = self
+        collectionView.delegate = self
+        collectionView.dataSource = self
         
         
         if spot == nil {
@@ -69,6 +71,7 @@ class SpotDetailViewController: UIViewController {
         }
         
         reviews = Reviews()
+        photos = Photos()
         
         let region = MKCoordinateRegion(center: spot.coordinate, latitudinalMeters: regionDistance, longitudinalMeters: regionDistance)
         mapView.setRegion(region, animated: true)
@@ -105,19 +108,6 @@ class SpotDetailViewController: UIViewController {
         }
     }
     
-    @IBAction func textFieldEditingChanged(_ sender: UITextField) {
-        saveBarButton.isEnabled = !(nameField.text == "")
-        
-    }
-    
-    @IBAction func textFieldReturnPressed(_ sender: UITextField) {
-        sender.resignFirstResponder()
-        spot.name = nameField.text!
-        spot.address = addressField.text!
-        updateUserInterface()
-    }
-    
-    
     func showAlert(title: String, message: String) {
         let alertController = UIAlertController(title: title, message: message, preferredStyle: .alert)
         let alertAction = UIAlertAction(title: "OK", style: .default, handler: nil)
@@ -146,10 +136,33 @@ class SpotDetailViewController: UIViewController {
         }
     }
     
+    func cameraOrLibraryAlert() {
+        let alertController = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+        let cameraAction = UIAlertAction(title: "Camera", style: .default, handler: nil)
+        let photoLibraryAction = UIAlertAction(title: "Photo Library", style: .default, handler: nil)
+        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+        alertController.addAction(cameraAction)
+        alertController.addAction(photoLibraryAction)
+        alertController.addAction(cancelAction)
+        present(alertController, animated: true, completion: nil)
+    }
     
+    
+    @IBAction func textFieldEditingChanged(_ sender: UITextField) {
+        saveBarButton.isEnabled = !(nameField.text == "")
+        
+    }
+    
+    @IBAction func textFieldReturnPressed(_ sender: UITextField) {
+        sender.resignFirstResponder()
+        spot.name = nameField.text!
+        spot.address = addressField.text!
+        updateUserInterface()
+    }
     
 
     @IBAction func photoButtonPressed(_ sender: UIButton) {
+        cameraOrLibraryAlert()
     }
     
     @IBAction func reviewButtonPressed(_ sender: UIButton) {
@@ -298,6 +311,20 @@ extension SpotDetailViewController: UITableViewDelegate, UITableViewDataSource {
         
         
         
+        return cell
+    }
+    
+    
+}
+
+extension SpotDetailViewController: UICollectionViewDelegate, UICollectionViewDataSource {
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return photos.photoArray.count
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "PhotoCell", for: indexPath) as! SpotPhotosCollectionViewCell
+        cell.photo = photos.photoArray[indexPath.row]
         return cell
     }
     
